@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.web.ssm.dao.TicketInfoMapper">
+    <resultMap id="ticketinfoResultMap" type="TicketInfo">
+        <id property="ticketid" column="TI_ID" javaType="java.lang.String"/>
+        <result property="statime" column="TI_STARTTIME" javaType="java.util.Date"/>
+        <result property="arrtime" column="TI_ARRIVETIME" javaType="java.util.Date"/>
+        <result property="price" column="TI_PRICE" javaType="java.lang.Integer"/>
+
+        <association property="seat" column="S_ID" javaType="Seat"
+                     select="org.web.ssm.dao.SeatMapper.selectByPrimaryKey"/>
+        <association property="train" javaType="Train" column="T_ID"
+                     select="org.web.ssm.dao.TrainMapper.selectByPrimaryKey"/>
+        <association property="startStation" column="TI_STARTSTAID"
+                     select="org.web.ssm.dao.StartStationMapper.selectByPrimaryKey" javaType="StartStation"/>
+        <association property="endStation" column="TI_GOLESTAID" javaType="EndStation"
+                     select="org.web.ssm.dao.EndStationMapper.selectByPrimaryKey"/>
+    </resultMap>
+
+    <select id="selectByPrimaryKey" resultMap="ticketinfoResultMap" parameterType="java.lang.String">
+        SELECT *
+        FROM T_TICKETINFO t,T_STARTSTATION s, T_ENDSTATION s1, T_TRAININFO r,T_SEAT ts
+        WHERE t.TI_STARTSTAID=s.SSTA_ID
+        AND t.TI_GOLESTAID=s1.ESTA_ID
+        AND t.T_ID = r.T_ID
+        AND t.S_ID = ts.S_ID
+        AND t.TI_ID = #{ticketid}
+    </select>
+
+    <insert id="insertTicketInfo" parameterType="TicketInfo">
+        <selectKey keyProperty="ticketid" order="BEFORE" resultType="java.lang.String">
+            SELECT 'TK'||ticketinfo_seq.nextval as ticketid FROM dual
+        </selectKey>
+        INSERT INTO T_TICKETINFO(TI_ID,TI_STARTSTAID,TI_GOLESTAID,S_ID,T_ID,TI_STARTTIME,TI_ARRIVETIME,TI_PRICE)
+        VALUES
+        (#{ticketid},#{startStation.stationid},#{endStation.stationid},#{seat.seatid},#{train.trainid},#{statime},#{arrtime},#{price})
+    </insert>
+</mapper>

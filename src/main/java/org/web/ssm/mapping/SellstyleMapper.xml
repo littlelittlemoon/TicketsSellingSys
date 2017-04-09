@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.web.ssm.dao.SellstyleMapper">
+    <resultMap id="sellstyleResultMap" type="Sellstyle">
+        <id column="SS_ID" property="sid" javaType="java.lang.String" jdbcType="CHAR"/>
+
+        <result column="SS_NAME" property="sname" javaType="java.lang.String" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectByPrimaryKey" resultMap="sellstyleResultMap">
+        SELECT *
+        FROM T_SELLSTYLE
+        WHERE SS_ID = #{styleid}
+    </select>
+</mapper>

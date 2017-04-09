@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.web.ssm.dao.TrainMapper">
+
+    <resultMap id="trainResultMap" type="Train">
+        <id property="trainid" column="T_ID" javaType="java.lang.String"/>
+        <result column="T_NUM" property="carid" javaType="java.lang.String"/>
+        <result property="starttime" column="T_STARTTIME" javaType="String"/>
+        <result property="distance" column="T_ALLDISTANCE" javaType="java.lang.Integer"/>
+        <result property="standticketnum" column="T_STANDNUM" javaType="java.lang.Integer"/>
+        <result property="seatticketnum" column="T_SEATNUM" javaType="java.lang.Integer"/>
+        <result property="sleepticketnum" column="T_SLEEPNUM" javaType="java.lang.Integer"/>
+        <result property="arrtime" column="T_ENDTIME" javaType="String"/>
+
+        <association property="startstation" column="T_STARTSTAID"
+                     select="org.web.ssm.dao.StartStationMapper.selectByPrimaryKey" javaType="StartStation"/>
+        <association property="endstation" column="T_ENDSTAID" javaType="EndStation"
+                     select="org.web.ssm.dao.EndStationMapper.selectByPrimaryKey"/>
+    </resultMap>
+
+    <resultMap id="TrainviewResultMap" type="org.web.ssm.model.PriceInfoView">
+        <result column="车次编号" property="trainid" javaType="java.lang.String"/>
+        <result column="出发站" property="staStation" javaType="java.lang.String"/>
+        <result column="目的站" property="endStation" javaType="java.lang.String"/>
+        <result column="出发时间" property="staTime" javaType="java.util.Date"/>
+        <result column="到达时间" property="arrTime" javaType="java.util.Date"/>
+        <result column="里程" property="distance" javaType="java.lang.Integer"/>
+        <result column="座位类型" property="seatType" javaType="java.lang.String"/>
+        <result column="票价" property="ticketprice" javaType="java.lang.Integer"/>
+    </resultMap>
+
+    <!--根据车次查询-->
+    <select id="selectByPrimaryKey" resultMap="trainResultMap">
+        SELECT t.T_ID,t.T_STARTSTAID,t.T_ENDSTAID,t.T_NUM,t.T_STARTTIME,
+        t.T_ENDTIME,t.T_ALLDISTANCE,t.T_STANDNUM,t.T_SEATNUM,t.T_SLEEPNUM
+        FROM T_TRAININFO t,T_STARTSTATION s, T_ENDSTATION s1
+        WHERE t.T_STARTSTAID = s.SSTA_ID
+        AND t.T_ENDSTAID = s1.ESTA_ID
+        AND t.T_ID = #{trainid}
+    </select>
+
+    <!--根据车站时间查询-->
+    <select id="selectByStation" resultMap="TrainviewResultMap">
+        SELECT *
+        FROM V_TICKETPRICE v
+        WHERE v.出发站 = #{startStation} and v.目的站=#{endStation} and TRUNC(v.出发时间)= #{date}
+    </select>
+
+    <!--根据车站查询-->
+    <select id="selectPriceByStation" resultMap="TrainviewResultMap">
+        SELECT DISTINCT *
+        FROM V_TICKETPRICE v
+        WHERE v.出发站 = #{startStation} and v.目的站=#{endStation}
+    </select>
+
+    <select id="selectAll" resultMap="trainResultMap" parameterType="Pages">
+        SELECT
+        B.T_ID,
+        B.T_STARTSTAID,
+        B.T_ENDSTAID,
+        B.T_NUM,
+        B.T_STARTTIME,
+        B.T_ALLDISTANCE,
+        B.T_STANDNUM,
+        B.T_SEATNUM,
+        B.T_SLEEPNUM,
+        B.T_ENDTIME
+        FROM
+        (
+        SELECT A.*,ROWNUM R
+        FROM
+        (
+        SELECT *
+        FROM T_TRAININFO,T_STARTSTATION,T_ENDSTATION
+        WHERE T_TRAININFO.T_STARTSTAID = T_STARTSTATION.SSTA_ID AND T_TRAININFO.T_ENDSTAID = T_ENDSTATION.ESTA_ID
+        <if test="keyWords != null and keyWords != ''">
+            AND T_TRAININFO.T_NUM LIKE '%${keyWords}%' OR
+            T_STARTSTATION.SSTA_NAME LIKE '%${keyWords}%' OR
+            T_ENDSTATION.ESTA_NAME LIKE '%${keyWords}%'
+        </if>
+        )A
+        WHERE ROWNUM <![CDATA[<]]> #{maxRow}
+        )B
+        WHERE R > #{minRow}
+    </select>
+
+    <select id="getCount" parameterType="Pages" resultType="Integer">
+        SELECT COUNT(*)
+        FROM T_TRAININFO,T_STARTSTATION,T_ENDSTATION
+        WHERE T_TRAININFO.T_STARTSTAID = T_STARTSTATION.SSTA_ID AND T_TRAININFO.T_ENDSTAID = T_ENDSTATION.ESTA_ID
+        <if test="keyWords != null and keyWords != ''">
+            AND T_TRAININFO.T_NUM LIKE '%${keyWords}%' OR
+            T_STARTSTATION.SSTA_NAME LIKE '%${keyWords}%' OR
+            T_ENDSTATION.ESTA_NAME LIKE '%${keyWords}%'
+        </if>
+    </select>
+
+    <insert id="insertTrain" parameterType="Train">
+        <selectKey keyProperty="trainid" resultType="String" order="BEFORE">
+            SELECT 'CK'||TRAININFO_SEQ.nextval as trainid FROM DUAL
+        </selectKey>
+        INSERT INTO
+        T_TRAININFO(T_ID,T_STARTSTAID,T_ENDSTAID,T_NUM,T_STARTTIME,T_ENDTIME,T_ALLDISTANCE,T_STANDNUM,T_SEATNUM,T_SLEEPNUM)
+        VALUES
+        (#{trainid},#{startstation.stationid},#{endstation.stationid},#{carid},to_date(#{starttime},'yyyy-mm-dd
+        hh24:mi:ss'),to_date(#{arrtime},'yyyy-mm-dd
+        hh24:mi:ss'),#{distance},#{standticketnum},#{seatticketnum},#{sleepticketnum})
+    </insert>
+
+    <update id="updateTrain" parameterType="Train">
+        UPDATE T_TRAININFO
+        SET
+        T_STARTSTAID=#{startstation.stationid},T_ENDSTAID=#{endstation.stationid},T_NUM=#{carid},T_STARTTIME=to_date(#{starttime},'yyyy-mm-dd
+        hh24:mi:ss'),T_ENDTIME=to_date(#{arrtime},'yyyy-mm-dd
+        hh24:mi:ss'),T_ALLDISTANCE=#{distance},T_STANDNUM=#{standticketnum},T_SEATNUM=#{seatticketnum},T_SLEEPNUM=#{sleepticketnum}
+        WHERE T_ID = #{trainid}
+    </update>
+
+    <delete id="deleteTrain">
+        DELETE FROM T_TRAININFO
+        WHERE T_ID = #{trainid}
+    </delete>
+
+    <update id="reduceStandNumberByid">
+        UPDATE T_TRAININFO SET T_STANDNUM = T_STANDNUM-1
+        WHERE T_ID = #{trainid}
+    </update>
+
+    <update id="reduceSeatNumberByid">
+        UPDATE T_TRAININFO SET T_SEATNUM = T_SEATNUM-1
+        WHERE T_ID = #{trainid}
+    </update>
+
+    <update id="reduceSleepNumberByid">
+        UPDATE T_TRAININFO SET T_SLEEPNUM = T_SLEEPNUM-1
+        WHERE T_ID = #{trainid}
+    </update>
+
+    <update id="addStandNumberByid">
+        UPDATE T_TRAININFO SET T_STANDNUM = T_STANDNUM+1
+        WHERE T_ID = #{trainid}
+    </update>
+
+    <update id="addSeatNumberByid">
+        UPDATE T_TRAININFO SET T_SEATNUM = T_SEATNUM+1
+        WHERE T_ID = #{trainid}
+    </update>
+
+    <update id="addSleepNumberByid">
+        UPDATE T_TRAININFO SET T_SLEEPNUM = T_SLEEPNUM+1
+        WHERE T_ID = #{trainid}
+    </update>
+</mapper>

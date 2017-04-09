@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.web.ssm.dao.PriceInfoMapper">
+    <resultMap id="priceinfoResultMap" type="PriceInfo">
+        <result column="TP_STARTTIME" property="starttime" javaType="java.util.Date"/>
+        <result column="TP_ARRIVETIME" property="arrtime" javaType="java.util.Date"/>
+        <result column="TP_DISTANCE" property="distance" javaType="java.lang.Integer"/>
+        <result column="TP_PRICE" property="price" javaType="java.lang.Integer"/>
+
+        <association column="T_ID" property="train" javaType="java.lang.String"
+                     select="org.web.ssm.dao.TrainMapper.selectByPrimaryKey"/>
+        <association column="TP_STARTSTAID" property="startStation" javaType="java.lang.String"
+                     select="org.web.ssm.dao.StartStationMapper.selectByPrimaryKey"/>
+        <association column="TP_GOLESTAID" property="endStation" javaType="java.lang.String"
+                     select="org.web.ssm.dao.EndStationMapper.selectByPrimaryKey"/>
+        <association column="S_ID" property="seat" javaType="java.lang.String"
+                     select="org.web.ssm.dao.SeatMapper.selectByPrimaryKey"/>
+    </resultMap>
+
+    <insert id="insertPriceInfo" parameterType="PriceInfo">
+        INSERT INTO T_PRICEINFO(T_ID, S_ID, TP_STARTSTAID, TP_GOLESTAID, TP_STARTTIME, TP_ARRIVETIME, TP_DISTANCE,
+        TP_PRICE)
+        VALUES
+        (#{train.trainid},#{seat.seatid},#{startStation.stationid},#{endStation.stationid},#{starttime},#{arrtime},#{distance},#{price})
+    </insert>
+
+    <delete id="deletePriceInfo" parameterType="PriceInfo">
+        DELETE FROM T_PRICEINFO
+        WHERE T_ID=#{train.trainid} AND S_ID=#{seat.seatid} AND TP_STARTSTAID=#{startStation.stationid} AND
+        TP_GOLESTAID=#{endStation.stationid}
+    </delete>
+
+    <delete id="deletePriceInfoBytrain" parameterType="PriceInfo">
+        DELETE FROM T_PRICEINFO
+        WHERE T_ID=#{train.trainid}
+    </delete>
+</mapper>

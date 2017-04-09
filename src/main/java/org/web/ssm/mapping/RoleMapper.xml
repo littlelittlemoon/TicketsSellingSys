@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.web.ssm.dao.RoleMapper">
+    <resultMap id="roleResultMap" type="Role">
+        <id column="R_ID" property="roleid" javaType="java.lang.String" jdbcType="CHAR"/>
+
+        <result column="R_NAME" property="rolename" javaType="java.lang.String" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectByPrimaryKey" resultMap="roleResultMap">
+        SELECT R_ID, R_NAME
+        FROM T_ROLE
+        WHERE R_ID = #{roleid}
+    </select>
+</mapper>

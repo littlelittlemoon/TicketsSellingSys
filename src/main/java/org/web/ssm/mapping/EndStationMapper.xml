@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.web.ssm.dao.EndStationMapper">
+    <resultMap id="stationResultMap" type="EndStation">
+        <id property="stationid" column="ESTA_ID" javaType="java.lang.String" jdbcType="CHAR"/>
+        <result property="stationname" column="ESTA_NAME" jdbcType="VARCHAR" javaType="java.lang.String"/>
+    </resultMap>
+
+    <select id="selectByPrimaryKey" resultMap="stationResultMap">
+        SELECT *
+        FROM T_ENDSTATION
+        WHERE ESTA_ID = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="stationResultMap">
+        SELECT *
+        FROM T_ENDSTATION
+    </select>
+
+    <select id="selectByName" resultMap="stationResultMap">
+        SELECT *
+        FROM T_ENDSTATION
+        WHERE ESTA_NAME = #{stationname}
+    </select>
+</mapper>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.web.ssm.dao.PassengerInfoMapper">
+    <resultMap id="passengerinfoResultMap" type="PassengerInfo">
+        <id property="pid" javaType="java.lang.String" column="P_ID"/>
+        <result property="pname" javaType="java.lang.String" column="P_NAME"/>
+
+        <association property="ticketInfo" javaType="TicketInfo" column="TI_ID"
+                     select="org.web.ssm.dao.TicketInfoMapper.selectByPrimaryKey"/>
+        <association property="sellstyle" javaType="Sellstyle" column="SS_ID"
+                     select="org.web.ssm.dao.SellstyleMapper.selectByPrimaryKey"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="passengerinfoResultMap">
+        SELECT
+        B.P_ID,
+        B.TI_ID,
+        B.SS_ID,
+        B.P_NAME
+        FROM
+        (
+        SELECT A.*,ROWNUM R
+        FROM (
+        SELECT *
+        FROM T_PASSENGERINFO
+        <if test="keyWords != null and keyWords != ''">
+            WHERE P_NAME LIKE '%${keyWords}%' OR P_ID LIKE '%${keyWords}%'
+        </if>
+        ) A
+        WHERE ROWNUM <![CDATA[<]]> #{maxRow}
+        ) B
+        WHERE R <![CDATA[>]]> #{minRow}
+    </select>
+
+    <select id="selectOnlybuy" parameterType="Pages" resultMap="passengerinfoResultMap">
+        SELECT
+        B.P_ID,
+        B.TI_ID,
+        B.SS_ID,
+        B.P_NAME
+        FROM
+        (
+        SELECT A.*,ROWNUM R
+        FROM (
+        SELECT *
+        FROM T_PASSENGERINFO
+        <if test="keyWords != null and keyWords != ''">
+            WHERE P_NAME LIKE '%${keyWords}%' OR P_ID LIKE '%${keyWords}%'
+        </if>
+        ) A
+        WHERE ROWNUM <![CDATA[<]]> #{maxRow}
+        ) B
+        WHERE R <![CDATA[>]]> #{minRow} AND B.SS_ID = 'B101'
+    </select>
+
+    <select id="getCount" resultType="Integer" parameterType="Pages">
+        SELECT COUNT(*) FROM T_PASSENGERINFO
+        <where>
+            <if test="keyWords != null and keyWords != ''">
+                T_PASSENGERINFO.P_NAME LIKE '%${keyWords}%'
+            </if>
+            <if test="msg == 'Onlybuy'">
+                AND SS_ID = 'B101'
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="passengerinfoResultMap" parameterType="java.lang.String">
+        SELECT *
+        FROM T_PASSENGERINFO
+        WHERE trim(P_ID)=#{idcard}
+    </select>
+
+    <insert id="insertPassengerInfo" parameterType="PassengerInfo">
+        INSERT INTO T_PASSENGERINFO(P_ID,P_NAME,SS_ID,TI_ID)
+        VALUES (#{pid},#{pname},#{sellstyle.sid},#{ticketInfo.ticketid})
+    </insert>
+
+    <update id="updatePassgerInfo" parameterType="PassengerInfo">
+        UPDATE T_PASSENGERINFO
+        SET SS_ID = #{sellstyle.sid}
+        WHERE P_ID = #{pid}
+    </update>
+</mapper>

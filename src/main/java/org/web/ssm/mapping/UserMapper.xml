@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.web.ssm.dao.UserMapper">
+    <resultMap id="userResultMap" type="User">
+
+        <id column="U_ID" property="userid" javaType="java.lang.String" jdbcType="CHAR"/>
+
+        <result column="U_NAME" property="username" javaType="java.lang.String" jdbcType="VARCHAR"/>
+
+        <result column="U_PASS" property="userpass" javaType="java.lang.String" jdbcType="VARCHAR"/>
+
+        <result column="U_SEX" property="usersex" javaType="java.lang.String" jdbcType="CHAR"/>
+
+        <association property="role" column="R_ID" javaType="Role" resultMap="roleResultMap"/>
+    </resultMap>
+
+    <resultMap id="roleResultMap" type="Role">
+        <id property="roleid" column="R_ID"/>
+        <result property="rolename" column="R_NAME"/>
+    </resultMap>
+
+    <select id="selectByPrimaryKey" resultMap="userResultMap">
+        select *
+        from T_USERINFO u,T_ROLE role
+        where u.R_ID = role.R_ID and u.U_ID = #{userid}
+    </select>
+
+    <select id="selectAll" resultMap="userResultMap">
+        select *
+        from T_USERINFO u,T_ROLE r
+        WHERE u.R_ID = r.R_ID
+    </select>
+
+    <update id="updateUser" parameterType="User">
+        UPDATE T_USERINFO
+        SET U_PASS=#{userpass}
+        WHERE U_ID = #{userid}
+    </update>
+
+    <update id="updateUserInfo" parameterType="User">
+        UPDATE T_USERINFO
+        SET U_PASS=#{userpass},R_ID=#{role.roleid},U_SEX=#{usersex},U_NAME=#{username}
+        WHERE U_ID = #{userid}
+    </update>
+
+    <insert id="insertUser" parameterType="User">
+        <selectKey keyProperty="userid" order="BEFORE" resultType="java.lang.String">
+            SELECT 'US'||USERINFO_SEQ.nextval AS userid FROM DUAL
+        </selectKey>
+        INSERT INTO T_USERINFO(U_ID, U_NAME,U_PASS, U_SEX, R_ID)
+        VALUES(#{userid},#{username},#{userpass},#{usersex},#{role.roleid})
+    </insert>
+
+    <delete id="deleteUser" parameterType="java.lang.String">
+        DELETE FROM T_USERINFO
+        WHERE U_ID = #{userid}
+    </delete>
+</mapper>
